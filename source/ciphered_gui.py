@@ -15,6 +15,8 @@ from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.kdf import pbkdf2
 from cryptography.hazmat.primitives import hashes
 
+import base64
+
 # default values used to populate connection window
 DEFAULT_VALUES = {
     "host" : "127.0.0.1",
@@ -86,10 +88,15 @@ class CipheredGUI(BasicGUI):
 
         #Get initialisation vector and encrypted message
         iv, ciphertext = message
-        #decode base64
-        ciphertext = base64.b64decode(ciphertext)
-        print("iv : ", iv)
-        iv = bytes(iv,'utf-8')
+
+        #get data of iv
+        iv = iv['data']
+        #get data of ciphertext
+        ciphertext = ciphertext['data']
+
+        #Convert base64 to bytes
+        iv = bytes(base64.b64decode(iv))
+        ciphertext = bytes(base64.b64decode(ciphertext))
         
         #Decryption
         cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv))
