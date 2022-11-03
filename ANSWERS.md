@@ -39,30 +39,46 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 > La méthode la plus simple est d'ajouter un chiffrement <span style="color:red">AES</span> entre les clients afin d'éviter des attaques `Man In The Middle` et de respecter le principe de confidentialité.
 
 ## Chiffrement
-### 1. Est ce que urandom est un bon choix pour de la cryptographie ? Pouquoi ?
+### 1. Est ce que urandom est un bon choix pour de la cryptographie ? Pourquoi ?
+> Urandom est un bon choix car il permet de générer des nombres aléatoires de manière sécurisée. Il est utilisé pour générer des clés de chiffrement. Attention, cette méthode ne génère pas du true random mais des nombres pseudo-aléatoires.
+
 
 ### 2. Pourquoi utiliser ses primitives cryptographiques peut être dangereux?
+> Il est déconseillé d'utiliser ses propres primitives cryptographiques pour les 3 raisons suivantes :
+> - le concepteur peut ne pas avoir les compétences mathématiques et pratiques suffisantes pour maitriser tous les aspects de la conception d'une nouvelle primitive cryptographique
+> - la conception d'une nouvelle primitive cryptographique est extrêmement longue et très sujette aux erreurs
+> - Les algorithmes qui la définissent ne doivent pas seulement être solidement conçus mais aussi être intensivement testés par la communauté des chercheurs en cryptologie afin de déceler la présence éventuelle d'erreurs.
 
 ### 3. Pourquoi malgré le chiffrement un serveur malveillant peut il nous nuire encore ? 
+> Le serveur peut altérer les messages envoyés, il n'y a pas de garantie que le message envoyé par un utilisateur soit bien celui reçu par l'autre.
 
 ### 4. Quelle propriété manque t-il ici?
+> Il manque la propriété d'intégrité.
 
 ## Authenticated Symetric Encryption
 
 ### 1. Pourquoi Fernet est moins risqué que le précédent chapitre en terme d'implémentation ?
+> Fernet est moins risqué que le précédent chapitre car il utilise des primitives cryptographiques déjà existantes et testées par la communauté des chercheurs en cryptologie. De plus, il utilise un HMAC construit à partir d'un hash du vecteur d'initialisation, du timestamp et du message chiffré pour garantir l'intégrité des messages.
 
-### 2. Un serveur malveillant peut néanmoins attaqué avec des faux messages, déjà utilisé dans le passé. Comment appel t-on cette attaque  ?
+### 2. Un serveur malveillant peut néanmoins attaquer avec des faux messages, déjà utilisé dans le passé. Comment appel t-on cette attaque  ?
+> Ce type d'attaque est nommé <b>"attaque de l'homme du milieu"</b> (de l'anglais <b><i>man-in-the-middle attack</i></b>)
 
 ### 3. Quelle méthode simple permet de s'en affranchir ?
+> Le <b>TTL</b> (Time to Live) permet d'éviter ce genre de problèmes en définissant et contrôlant le cycle de vie d'un message. Par exemple, on a Alice qui veut envoyer un message à Bob. Pour simplifier dans notre exemple, le TTL sera de 1, le message passe directement de Alice à Bob. Si Paul intercepte le message entre temps et le modifie, cela incrémenterait le TTL de 1 et Bob saura que le message aura été touché par un tier.
 
 ## TTL
 ### 1. Remarquez vous une différence avec le chapitre précédent ?
+> Non, il n'y a pas de différence notable avec le chapitre précédent.
 
 ### 2. Maintenant soustrayez 45 au temps lors de l'émission. Que se passe t-il et pourquoi ? 
+> Le message est refusé car le TTL est inférieur à 0.
 
 ### 3. Est-ce efficace pour se protéger de l'attaque du précédent chapitre ? 
+> 
 
 ### 4. Quelle(s) limite(s) cette solution peut rencontrer dans la pratique ?
+>
+
 
 ## Regard critique
 ### J'ai pris des raccourcis, pris des décisions arbitraires et utilisé des bibliothèques tiers. Ai-je laissé des vulnérabilités ? 

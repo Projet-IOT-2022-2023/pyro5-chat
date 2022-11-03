@@ -7,9 +7,8 @@ from generic_callback import GenericCallback
 
 from basic_gui import BasicGUI
 
-#import cryptography
 
-import os, sys
+import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.kdf import pbkdf2
@@ -27,13 +26,18 @@ DEFAULT_VALUES = {
 
 class CipheredGUI(BasicGUI):
     def __init__(self, key=None):
+
+        # Store the key
         self.key = key
+
+        # Execute the parent constructor
         super().__init__()
     
     def _create_connection_window(self):
         # windows about connexion
         with dpg.window(label="Connection", pos=(200, 150), width=400, height=300, show=False, tag="connection_windows"):
             
+            # Creation of fields to fill in
             for field in ["host", "port", "name", "password"]:
                 with dpg.group(horizontal=True):
                     dpg.add_text(field)
@@ -54,12 +58,12 @@ class CipheredGUI(BasicGUI):
         self._client = ChatClient(host, port)
         self._client.start(self._callback)
         self._client.register(name)
-        #self._client.register(password)
+        
         #derivation of the key
         self.key = pbkdf2.PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'',
+            salt=b'du bon sel',
             iterations=100000,
         ).derive(password.encode('utf-8'))
 
@@ -85,30 +89,33 @@ class CipheredGUI(BasicGUI):
         return (iv, ct)
     
     def decrypt(self, message):
+        try:
+            #Get initialisation vector and encrypted message
+            iv, ciphertext = message
 
-        #Get initialisation vector and encrypted message
-        iv, ciphertext = message
+            #get data of iv
+            iv = iv['data']
+            #get data of ciphertext
+            ciphertext = ciphertext['data']
 
-        #get data of iv
-        iv = iv['data']
-        #get data of ciphertext
-        ciphertext = ciphertext['data']
+            #Convert base64 to bytes
+            iv = bytes(base64.b64decode(iv))
+            ciphertext = bytes(base64.b64decode(ciphertext))
+            
+            #Decryption
+            cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv))
+            decryptor = cipher.decryptor()
+            pt = decryptor.update(ciphertext) + decryptor.finalize()
 
-        #Convert base64 to bytes
-        iv = bytes(base64.b64decode(iv))
-        ciphertext = bytes(base64.b64decode(ciphertext))
-        
-        #Decryption
-        cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv))
-        decryptor = cipher.decryptor()
-        pt = decryptor.update(ciphertext) + decryptor.finalize()
-
-        #Remove padding
-        unpadder = padding.PKCS7(128).unpadder()
-        data = unpadder.update(pt) + unpadder.finalize()
-        
-        #Return the uncrypted message
-        return data.decode('utf-8')
+            #Remove padding
+            unpadder = padding.PKCS7(128).unpadder()
+            data = unpadder.update(pt) + unpadder.finalize()
+            
+            #Return the uncrypted message
+            return data.decode('utf-8')
+        except Exception as e:
+            print(e)
+            return None
         
     def send(self, text)->None:
         # function called to send a message to all (broadcasting)
@@ -118,8 +125,10 @@ class CipheredGUI(BasicGUI):
         # function called to get incoming messages and display them
         if self._callback is not None:
             for user, message in self._callback.get():
-                self.update_text_screen(f"{user} : {self.decrypt(message)}")
-                self._callback.clear()
+                message = self.decrypt(message)
+                if message is not None:
+                    self.update_text_screen(f"{user} : {message}")
+                    self._callback.clear()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
