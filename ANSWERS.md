@@ -74,10 +74,10 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 > Le message est refusé car le TTL est inférieur à 0.
 
 ### 3. Est-ce efficace pour se protéger de l'attaque du précédent chapitre ? 
-> 
+> Cette solution est efficace pour se protéger de l'attaque du précédent chapitre en comparant le temps entre l'émission et la réception.
 
 ### 4. Quelle(s) limite(s) cette solution peut rencontrer dans la pratique ?
->
+> Cette solution peut rencontrer des problèmes dans la pratique car il faut que les deux utilisateurs aient une horloge synchronisée. De plus, il faut que le TTL soit suffisamment grand pour que le message puisse être envoyé et reçu dans les temps.
 
 
 ## Regard critique
@@ -86,6 +86,14 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 ### A vous maintenant de trouver ce qui ne va pas, de justifier votre propos et de proposer une alternative. Ce n'est pas tant la quantité de point que vous trouverez que la pertinence de votre analyse qui vous permettera de décrocher des points.
 
 
-
-
+> possibilité de mettre une taille infinie
+> possibilité de mettre des caractères spéciaux
+> possibilité de ne pas respecter le format d'envoi
+> possibilité de se connecter plusieurs fois avec le même nom
+> This is a “Hazardous Materials” module -> https://cryptography.io/en/latest/hazmat/primitives/index.html -> contiens des vulnérabilités
+> pas de routine prévue pour la déconnexion (ou en cas de timeout)
+> Le serveur qui est démarré en mode debug
+> - 
+> Pas de synchronisation du timestamp entre les deux utilisateurs
+> - Le serveur peut envoyer un timestamp lors de la connexion de l'utilisateur pour que celui-ci puisse synchroniser son horloge
 

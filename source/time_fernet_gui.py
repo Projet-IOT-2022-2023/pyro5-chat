@@ -8,7 +8,6 @@ from cryptography.hazmat.primitives import padding
 from  cryptography.fernet import Fernet
 
 import base64
-import time
 
 
 class TimeFernetGUI(FernetGUI):
