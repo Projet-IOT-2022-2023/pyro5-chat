@@ -38,7 +38,7 @@ class ChatServer(object):
 
 if __name__=="__main__":
     PORT = 66666
-    logging.basicConfig(level=logging.DEBUG) # BE CAREFUL, DEBUG MODE
+    logging.basicConfig(level=logging.DEBUG)
     try:
         host = sys.argv[1]
     except:

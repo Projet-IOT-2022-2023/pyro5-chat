@@ -94,11 +94,11 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 > Pyro5.config.MAX_MESSAGE_SIZE = 4092 # 4 ko
 > ```
 >
-> 3. possibilité de ne pas respecter le format d'envoi
+> 2. possibilité de ne pas respecter le format d'envoi
 >
-> Vérifier du côté du serveur 
+> Vérifier du côté du serveur si on a bien des données encodés en base64 dans un dictionnaire sous la forme `{"data": Donnée en base64 , "encoding": "base64"}`.
 >
-> 4. possibilité de se connecter plusieurs fois avec le même nom
+> 3. possibilité de se connecter plusieurs fois avec le même nom
 >
 > Vérifier du côté du serveur si le nom est déjà utilisé, si oui, le serveur refuse la connexion. On peut ajouter dans la fonction `register` du serveur :
 > ```python
@@ -106,17 +106,18 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 >            raise ValueError("user already registered")
 > ```
 >
-> 5. This is a “Hazardous Materials” module -> https://cryptography.io/en/latest/hazmat/primitives/index.html -> contiens des vulnérabilités
+> 4. This is a “Hazardous Materials” module -> https://cryptography.io/en/latest/hazmat/primitives/index.html -> contiens des vulnérabilités
 >
-> Ne pas utiliser des fonctions provenant de `cryptography.hazmat` mais plutôt de `cryptography.fernet`
+> Ne pas utiliser des fonctions provenant de `cryptography.hazmat` mais plutôt de `cryptography.fernet` par exemple. (Ce problème a été corrigé dans fernet_gui.py et time_fernet_gui.py)
 > 
-> 6. pas de routine prévue pour la déconnexion (ou en cas de timeout)
-> 
-> 7. Le serveur qui est démarré en mode debug
+> 5. Le serveur qui est démarré en mode debug
 > 
 > Enlever le mode debug du serveur 
 > 
-> 8. Pas de synchronisation du timestamp entre les deux utilisateurs
+> 6. Pas de synchronisation du timestamp entre les deux utilisateurs
 > 
-> Le serveur peut envoyer un timestamp lors de la connexion de l'utilisateur pour que celui-ci puisse synchroniser son horloge
+> Le serveur peut envoyer som timestamp lors de la connexion à l'utilisateur pour que celui-ci puisse synchroniser son horloge
 
+> 7. Pas de vérification de l'authenticité du message, l'en-tête peut être modifié (qui contient le username) car il est envoyé en clair
+> 
+> Utiliser les méthodes de chiffrement/signature SSL/TLS intégrées à Pyro5 pour s'assurer de l'authenticité du message. Cela permet d'éviter les attaques de l'homme du milieu entre le client et le serveur. Cependant, si on ne trust pas le serveur, il faut utiliser un certificat auto-signé pour chaque utilisateur pour s'assurer de l'authenticité du message. L'utilisateur enverra son certificat à l'autre utilisateur par un autre biais pour qu'il puisse vérifier l'authenticité du message.

@@ -15,14 +15,14 @@ class TimeFernetGUI(FernetGUI):
         try:
 
             #get data of ciphertext
-            ciphertext = message['data']
+            cipher_text = message['data']
 
             #Convert base64 to bytes
-            ciphertext = bytes(base64.b64decode(ciphertext))
+            cipher_text = bytes(base64.b64decode(cipher_text))
             
-            #Decryption
+            #Decryption with a time limit of 60 seconds
             token = Fernet(self.key)
-            pt = token.decrypt(token=ciphertext, ttl=60)
+            pt = token.decrypt(token=cipher_text, ttl=60)
 
             #Remove padding
             unpadder = padding.PKCS7(128).unpadder()
@@ -31,7 +31,9 @@ class TimeFernetGUI(FernetGUI):
             #Return the uncrypted message
             return data.decode('utf-8')
 
-        except:
+        except Exception as e:
+            self._log.error("Error while decrypting message")
+            self._log.error(e)
             return None
  
 if __name__ == "__main__":

@@ -28,9 +28,10 @@ class FernetGUI(CipheredGUI):
         self._client.register(name)
         
         #Hash the password to get the key (Fernet needs 32 bytes key)
-        h = hashes.Hash(hashes.SHA256() , backend=None)
-        h.update(password.encode('utf-8'))
-        hashed_password = h.finalize()
+        hash_obj = hashes.Hash(hashes.SHA256() , backend=None)
+        encoded_password = bytes(password,'utf-8')
+        hash_obj.update(encoded_password)
+        hashed_password = hash_obj.finalize()
         self.key = base64.b64encode(hashed_password)
 
         dpg.hide_item("connection_windows")
@@ -41,37 +42,42 @@ class FernetGUI(CipheredGUI):
 
         #Add padding to get 16 bytes multiple
         padder = padding.PKCS7(128).padder()
-        padded_data = padder.update(bytes(message,'utf-8')) + padder.finalize()
+        encoded_message = bytes(message,'utf-8')
+        padded_data = padder.update(encoded_message) + padder.finalize()
 
         #Encryption with Fernel HMAC method
         ct = Fernet(self.key)
         token = ct.encrypt(padded_data)
 
-        #Return the initialisation vector and the encrypted message
+        #Return the initialization vector and the encrypted message
         return token
     
     def decrypt(self, message):
 
         try:
 
-            #get data of ciphertext
-            ciphertext = message['data']
+            #get data of cipher_text
+            cipher_text = message['data']
 
             #Convert base64 to bytes
-            ciphertext = bytes(base64.b64decode(ciphertext))
+            cipher_text = bytes(base64.b64decode(cipher_text))
             
             #Decryption
             token = Fernet(self.key)
-            pt = token.decrypt(ciphertext)
+            pt = token.decrypt(cipher_text)
+
+            # Noice ;) 
 
             #Remove padding
             unpadder = padding.PKCS7(128).unpadder()
             data = unpadder.update(pt) + unpadder.finalize()
             
-            #Return the uncrypted message
+            #Return the decrypted message
             return data.decode('utf-8')
 
-        except:
+        except Exception as e:
+            self._log.error("Error while decrypting message")
+            self._log.error(e)
             return None
  
 if __name__ == "__main__":

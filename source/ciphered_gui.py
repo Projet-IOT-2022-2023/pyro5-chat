@@ -24,6 +24,10 @@ DEFAULT_VALUES = {
     "password" : ""
 }
 
+
+#Salt for the key derivation function
+SALT_VALUE = b"Wallah c'est du bon sel"
+
 class CipheredGUI(BasicGUI):
     def __init__(self, key=None):
 
@@ -63,17 +67,18 @@ class CipheredGUI(BasicGUI):
         self.key = pbkdf2.PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'du bon sel',
+            salt=SALT_VALUE,
             iterations=100000,
         ).derive(password.encode('utf-8'))
 
+        #Update the window
         dpg.hide_item("connection_windows")
         dpg.show_item("chat_windows")
         dpg.set_value("screen", "Connecting")
 
     def encrypt(self, message):
 
-        #Create initialisation vector
+        #Create initialization vector
         iv = os.urandom(16)
 
         #Add padding to get 16 bytes multiple
@@ -85,55 +90,58 @@ class CipheredGUI(BasicGUI):
         encryptor = cipher.encryptor()
         ct = encryptor.update(padded_data) + encryptor.finalize()
 
-        #Return the initialisation vector and the encrypted message
+        #Return the initialization vector and the encrypted message
         return (iv, ct)
     
     def decrypt(self, message):
         try:
-            #Get initialisation vector and encrypted message
-            iv, ciphertext = message
+            #Get initialization vector and encrypted message
+            iv, cipher_text = message
 
-            #get data of iv
+            #Get data of iv
             iv = iv['data']
-            #get data of ciphertext
-            ciphertext = ciphertext['data']
+            #Get data of cipher_text
+            cipher_text = cipher_text['data']
 
             #Convert base64 to bytes
             iv = bytes(base64.b64decode(iv))
-            ciphertext = bytes(base64.b64decode(ciphertext))
+            cipher_text = bytes(base64.b64decode(cipher_text))
             
             #Decryption
+            #<-- EL FAMOSO VAULT (F4)
             cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv))
             decryptor = cipher.decryptor()
-            pt = decryptor.update(ciphertext) + decryptor.finalize()
+            pt = decryptor.update(cipher_text) + decryptor.finalize()
 
             #Remove padding
             unpadder = padding.PKCS7(128).unpadder()
             data = unpadder.update(pt) + unpadder.finalize()
             
-            #Return the uncrypted message
+            #Return the decrypted message
             return data.decode('utf-8')
         except Exception as e:
-            print(e)
+            self._log.error("Error while decrypting message")
+            self._log.error(e)
             return None
         
     def send(self, text)->None:
         # function called to send a message to all (broadcasting)
-        self._client.send_message(self.encrypt(text))
+        encrypted_message = self.encrypt(text)
+        self._client.send_message(encrypted_message)
 
     def recv(self)->None:
         # function called to get incoming messages and display them
         if self._callback is not None:
             for user, message in self._callback.get():
-                message = self.decrypt(message)
-                if message is not None:
-                    self.update_text_screen(f"{user} : {message}")
+                decrypted_message = self.decrypt(message)
+                if decrypted_message is not None:
+                    self.update_text_screen(f"{user} : {decrypted_message}")
                     self._callback.clear()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    # instanciate the class, create context and related stuff, run the main loop
+    #Instanciate the class, create context and related stuff, run the main loop
     client = CipheredGUI()
     client.create()
     client.loop()
