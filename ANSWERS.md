@@ -86,14 +86,37 @@ On remarque aussi que les messages apparaissent en clair sur le serveur.
 ### A vous maintenant de trouver ce qui ne va pas, de justifier votre propos et de proposer une alternative. Ce n'est pas tant la quantité de point que vous trouverez que la pertinence de votre analyse qui vous permettera de décrocher des points.
 
 
-> possibilité de mettre une taille infinie
-> possibilité de mettre des caractères spéciaux
-> possibilité de ne pas respecter le format d'envoi
-> possibilité de se connecter plusieurs fois avec le même nom
-> This is a “Hazardous Materials” module -> https://cryptography.io/en/latest/hazmat/primitives/index.html -> contiens des vulnérabilités
-> pas de routine prévue pour la déconnexion (ou en cas de timeout)
-> Le serveur qui est démarré en mode debug
-> - 
-> Pas de synchronisation du timestamp entre les deux utilisateurs
-> - Le serveur peut envoyer un timestamp lors de la connexion de l'utilisateur pour que celui-ci puisse synchroniser son horloge
+> 1. possibilité de mettre une longueur de message ou d'utilisateur infinie
+> 
+> Pour corriger ce problème, il faut rajouter au début du programme du serveur :
+> ```python 
+> import Pyro5
+> Pyro5.config.MAX_MESSAGE_SIZE = 4092 # 4 ko
+> ```
+>
+> 3. possibilité de ne pas respecter le format d'envoi
+>
+> Vérifier du côté du serveur 
+>
+> 4. possibilité de se connecter plusieurs fois avec le même nom
+>
+> Vérifier du côté du serveur si le nom est déjà utilisé, si oui, le serveur refuse la connexion. On peut ajouter dans la fonction `register` du serveur :
+> ```python
+> if user in self._buffer:
+>            raise ValueError("user already registered")
+> ```
+>
+> 5. This is a “Hazardous Materials” module -> https://cryptography.io/en/latest/hazmat/primitives/index.html -> contiens des vulnérabilités
+>
+> Ne pas utiliser des fonctions provenant de `cryptography.hazmat` mais plutôt de `cryptography.fernet`
+> 
+> 6. pas de routine prévue pour la déconnexion (ou en cas de timeout)
+> 
+> 7. Le serveur qui est démarré en mode debug
+> 
+> Enlever le mode debug du serveur 
+> 
+> 8. Pas de synchronisation du timestamp entre les deux utilisateurs
+> 
+> Le serveur peut envoyer un timestamp lors de la connexion de l'utilisateur pour que celui-ci puisse synchroniser son horloge
 

@@ -3,9 +3,7 @@ import logging
 
 from fernet_gui import FernetGUI
 
-from cryptography.hazmat.primitives import padding
-
-from  cryptography.fernet import Fernet
+from  cryptography.fernet import Fernet, padding
 
 import base64
 

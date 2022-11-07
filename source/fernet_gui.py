@@ -7,10 +7,7 @@ from generic_callback import GenericCallback
 
 from ciphered_gui import CipheredGUI
 
-from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.primitives import hashes
-
-from  cryptography.fernet import Fernet
+from  cryptography.fernet import Fernet, hashes, padding
 
 import base64
 
